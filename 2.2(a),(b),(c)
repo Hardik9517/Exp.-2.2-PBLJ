@@ -1,0 +1,223 @@
+import java.io.*;
+import java.util.*;
+
+// Main class that combines all parts
+public class CombinedProgram {
+
+    // ---------- Part (a): Sum of Integers using Autoboxing and Unboxing ----------
+    public static void sumUsingAutoboxing() {
+        System.out.println("\n--- Part (a): Sum of Integers Using Autoboxing and Unboxing ---");
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter number of integers: ");
+        int n = sc.nextInt();
+        Integer sum = 0; // Autoboxing from int to Integer
+
+        System.out.println("Enter " + n + " integers:");
+        for (int i = 0; i < n; i++) {
+            int num = sc.nextInt();
+            sum += num; // Unboxing and Autoboxing automatically happen here
+        }
+
+        System.out.println("Sum of integers: " + sum);
+    }
+
+    // ---------- Part (b): Serialization and Deserialization of Student ----------
+    static class Student implements Serializable {
+        private static final long serialVersionUID = 1L;
+        String name;
+        int rollNo;
+        double marks;
+
+        public Student(String name, int rollNo, double marks) {
+            this.name = name;
+            this.rollNo = rollNo;
+            this.marks = marks;
+        }
+
+        public void display() {
+            System.out.println("Name: " + name);
+            System.out.println("Roll No: " + rollNo);
+            System.out.println("Marks: " + marks);
+        }
+    }
+
+    public static void studentSerializationDemo() {
+        System.out.println("\n--- Part (b): Serialization and Deserialization of Student Object ---");
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter student name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter roll number: ");
+        int roll = sc.nextInt();
+        System.out.print("Enter marks: ");
+        double marks = sc.nextDouble();
+
+        Student s1 = new Student(name, roll, marks);
+
+        // Serialization
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("student.ser"))) {
+            oos.writeObject(s1);
+            System.out.println("Student object serialized successfully.");
+        } catch (IOException e) {
+            System.out.println("Error during serialization: " + e);
+        }
+
+        // Deserialization
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("student.ser"))) {
+            Student s2 = (Student) ois.readObject();
+            System.out.println("\nDeserialized Student Object:");
+            s2.display();
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error during deserialization: " + e);
+        }
+    }
+
+    // ---------- Part (c): Menu-Based Employee Management System using File Handling ----------
+    static class Employee implements Serializable {
+        private static final long serialVersionUID = 1L;
+        int id;
+        String name;
+        double salary;
+
+        public Employee(int id, String name, double salary) {
+            this.id = id;
+            this.name = name;
+            this.salary = salary;
+        }
+
+        @Override
+        public String toString() {
+            return "ID: " + id + ", Name: " + name + ", Salary: " + salary;
+        }
+    }
+
+    public static void employeeManagementSystem() {
+        Scanner sc = new Scanner(System.in);
+        File file = new File("employees.dat");
+        ArrayList<Employee> employees = new ArrayList<>();
+
+        // Load existing employees if file exists
+        if (file.exists()) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+                employees = (ArrayList<Employee>) ois.readObject();
+            } catch (Exception e) {
+                // Ignore empty file errors
+            }
+        }
+
+        int choice;
+        do {
+            System.out.println("\n--- Part (c): Employee Management System ---");
+            System.out.println("1. Add Employee");
+            System.out.println("2. View Employees");
+            System.out.println("3. Search Employee by ID");
+            System.out.println("4. Delete Employee by ID");
+            System.out.println("5. Exit to Main Menu");
+            System.out.print("Enter your choice: ");
+            choice = sc.nextInt();
+            sc.nextLine(); // consume newline
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter ID: ");
+                    int id = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Enter Name: ");
+                    String name = sc.nextLine();
+                    System.out.print("Enter Salary: ");
+                    double salary = sc.nextDouble();
+
+                    employees.add(new Employee(id, name, salary));
+                    saveEmployeesToFile(employees, file);
+                    System.out.println("Employee added successfully!");
+                    break;
+
+                case 2:
+                    System.out.println("\n--- Employee List ---");
+                    if (employees.isEmpty()) {
+                        System.out.println("No employees found.");
+                    } else {
+                        for (Employee e : employees) {
+                            System.out.println(e);
+                        }
+                    }
+                    break;
+
+                case 3:
+                    System.out.print("Enter ID to search: ");
+                    int searchId = sc.nextInt();
+                    boolean found = false;
+                    for (Employee e : employees) {
+                        if (e.id == searchId) {
+                            System.out.println("Employee Found: " + e);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) System.out.println("Employee not found.");
+                    break;
+
+                case 4:
+                    System.out.print("Enter ID to delete: ");
+                    int deleteId = sc.nextInt();
+                    boolean removed = employees.removeIf(e -> e.id == deleteId);
+                    if (removed) {
+                        saveEmployeesToFile(employees, file);
+                        System.out.println("Employee deleted successfully!");
+                    } else {
+                        System.out.println("Employee not found.");
+                    }
+                    break;
+
+                case 5:
+                    System.out.println("Exiting Employee Management System...");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+
+        } while (choice != 5);
+    }
+
+    private static void saveEmployeesToFile(ArrayList<Employee> employees, File file) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(employees);
+        } catch (IOException e) {
+            System.out.println("Error saving employees: " + e);
+        }
+    }
+
+    // ---------- Main Menu ----------
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int mainChoice;
+
+        do {
+            System.out.println("\n===== Combined Java Program =====");
+            System.out.println("1. Sum of Integers (Autoboxing/Unboxing)");
+            System.out.println("2. Student Serialization & Deserialization");
+            System.out.println("3. Employee Management System (File Handling)");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            mainChoice = sc.nextInt();
+
+            switch (mainChoice) {
+                case 1:
+                    sumUsingAutoboxing();
+                    break;
+                case 2:
+                    studentSerializationDemo();
+                    break;
+                case 3:
+                    employeeManagementSystem();
+                    break;
+                case 4:
+                    System.out.println("Exiting program... Goodbye!");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Try again!");
+            }
+        } while (mainChoice != 4);
+    }
+}
